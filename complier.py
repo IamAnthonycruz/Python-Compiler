@@ -145,7 +145,39 @@ def pl_eval(env, node):
     class LoopContinue(Exception):
         def __init__(self):
             super().__init__('continue outside a loop')
-
+    if node[0] == 'def' and len(node) == 4:
+        _, name, args, body = node
+        for arg_name in args:
+            if not isinstance(arg_name, str):
+                raise ValueError('invalid argument name')
+        if len(args) != len(set(args)):
+            raise ValueError('duplicated argument name')
+        dct, _ = env
+        key = (name, len(args))
+        if key in dct:
+            raise ValueError('duplicated function name')
+        dct[key] = (args, body, env)
+        return
+    if node[0] == 'call' and len(node) >= 2:
+        _, name, *args = node
+        key = (name, len(args))
+        fargs,fbody,fenv = name_lookup(env, key)[key]
+        new_env = dict()
+        for arg_name, arg_val in zip(fargs, args):
+            new_env[arg_name] = pl_eval(env, arg_val)
+        try:
+            return pl_eval((new_env, fenv), fbody)
+        except FuncReturn as ret:
+            return ret.val
+    if node[0] == 'return' and len(node) == 1:
+        raise FuncReturn(None)
+    if node[0] == 'return' and len(node) == 2:
+        _, val = node
+        raise FuncReturn(pl_eval(env, val))
+    class FuncReturn(Exception):
+        def __init__(self, val):
+            super().__init__('`return` outside a function')
+            self.val = val
     import operator
     binops = {
         '+': operator.add, '-': operator.sub, '*': operator.mul, '/': operator.truediv,
