@@ -1,4 +1,21 @@
 # Skip whitespace and comments
+class Scope: 
+    def __init__self(self, prev):
+        self.prev = prev
+        self.nlocal = 0
+        self.names = dict()
+def scope_get_var(scope, name):
+    while scope:
+        if name in scope.names:
+            return scope.names[name]
+        scope = scope.prev
+    return None
+class Func:
+    def __init__(self):
+        self.name = Scope(None)
+        self.code = []
+        self.nvar = 0
+        self.stack = 0
 def skip_space(s, idx):
     while True:
         save = idx
