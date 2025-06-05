@@ -16,6 +16,20 @@ class Func:
         self.code = []
         self.nvar = 0
         self.stack = 0
+    def tmp(self):
+        dst = self.stack
+        self.stack += 1
+        return dst
+    def add_var(self,name,tp):
+        if name in self.scope.names:
+            raise ValueError('duplicated name')
+        self.scope.names[name] = (tp,self.nvar)
+        self.scope.nlocal += 1
+        assert self.stack == self.nvar
+        dst = self.stack
+        self.stack += 1
+        self.nvar += 1
+        return dst
 def skip_space(s, idx):
     while True:
         save = idx
